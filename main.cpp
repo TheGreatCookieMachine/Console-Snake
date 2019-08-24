@@ -192,11 +192,5 @@ int main()
 {
     Game game = Game({10, 10}, up);
     game.mainloop();
-    game.printGame();
-    while (true) {
-        _sleep(1000);
-        game.process();
-        game.printGame();
-    }
     return 0;
 }

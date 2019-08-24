@@ -3,14 +3,18 @@
 #include <array>
 #include <chrono>
 #include <algorithm>
+#include <conio.h>
 
 // Doesn't count walls, actual screen size is 2 higher than inputted value
-const int SCREEN_HEIGHT = 32;
-const int SCREEN_WIDTH = 64;
+const int SCREEN_HEIGHT = 10;
+const int SCREEN_WIDTH = 20;
 
 // Used for printing the game to the screen
 const char SNAKE_CHAR = 'S';
 const char APPLE_CHAR = '@';
+
+// In milliseconds
+const int FRAME_TIME = 500;
 
 enum Direction {
     up, down, left, right
@@ -29,11 +33,13 @@ class Snake {
 public:
     std::vector<std::array<int, 2>> body;
     Direction direction;
+    Direction directionBuffer;
     bool ateApple;
 
     Snake(std::array<int, 2> position, Direction direction) {
         this->body.push_back(position);
         this->direction = direction;
+        this->directionBuffer = direction;
         ateApple = false;
     }
 
@@ -57,6 +63,7 @@ public:
     }
 
     void process() {
+        this->direction = this->directionBuffer;
         if (ateApple) {
             this->body.push_back(this->body.back());
         }
@@ -141,11 +148,50 @@ public:
 
         this->clearBoard();
     }
+
+    void mainloop() {
+        while (true) {
+            auto startTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+            this->process();
+            this->printGame();
+            auto currentTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+            do {
+                if (kbhit()) {
+                    switch(getch()) {
+                    case '\x1b':
+                        return;
+                    case 'w':
+                        if (this->snake.direction == left || this->snake.direction == right) {
+                            this->snake.directionBuffer = up;
+                        }
+                        break;
+                    case 's':
+                        if (this->snake.direction == left || this->snake.direction == right) {
+                            this->snake.directionBuffer = down;
+                        }
+                        break;
+                    case 'a':
+                        if (this->snake.direction == up || this->snake.direction == down) {
+                            this->snake.directionBuffer = left;
+                        }
+                        break;
+                    case 'd':
+                        if (this->snake.direction == up || this->snake.direction == down) {
+                            this->snake.directionBuffer = right;
+                        }
+                        break;
+                    }
+                }
+                currentTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+            } while (currentTime.time_since_epoch().count() - startTime.time_since_epoch().count() < FRAME_TIME);
+        }
+    }
 };
 
 int main()
 {
     Game game = Game({10, 10}, up);
+    game.mainloop();
     game.printGame();
     while (true) {
         _sleep(1000);

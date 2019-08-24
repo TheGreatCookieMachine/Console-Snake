@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include <chrono>
+#include <algorithm>
 
 // Doesn't count walls, actual screen size is 2 higher than inputted value
 const int SCREEN_HEIGHT = 32;
@@ -28,19 +29,16 @@ class Snake {
 public:
     std::vector<std::array<int, 2>> body;
     Direction direction;
+    bool ateApple;
 
     Snake(std::array<int, 2> position, Direction direction) {
         this->body.push_back(position);
         this->direction = direction;
+        ateApple = false;
     }
 
-    void process() {
-        this->body.push_back(this->body.back());
-        for (int i = this->body.size() - 1; i > 0; i--) {
-            this->body[i] = this->body[i-1];
-        }
-
-        std::array<int, 2> destination = this->body[1];
+    std::array<int, 2> nextHead() {
+        std::array<int, 2> destination = this->body[0];
         switch (this->direction) {
         case up:
             destination[0]--;
@@ -55,27 +53,46 @@ public:
             destination[1]++;
             break;
         }
-        this->body[0] = destination;
+        return destination;
+    }
+
+    void process() {
+        if (ateApple) {
+            this->body.push_back(this->body.back());
+        }
+
+        for (int i = this->body.size() - 1; i > 0; i--) {
+            this->body[i] = this->body[i-1];
+        }
+
+        this->body[0] = this->nextHead();
     }
 };
 
 class Game {
 public:
     Snake snake;
+    Apple apple;
     char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
 
-    Game(std::array<int, 2> snakePosition, Direction direction): snake(snakePosition, direction) {
-        clearBoard();
+    Game(std::array<int, 2> snakePosition, Direction direction): snake(snakePosition, direction), apple({5, 10}) {
+        this->clearBoard();
     }
 
     void process() {
+        if (this->snake.nextHead() == this->apple.position) {
+            this->snake.ateApple = true;
+        }
+
         this->snake.process();
+
+        this->snake.ateApple = false;
     }
 
     void clearBoard() {
         for (int i = 0; i < SCREEN_HEIGHT; i++) {
             for (int j = 0; j < SCREEN_WIDTH; j++) {
-                screen[i][j] = ' ';
+                this->screen[i][j] = ' ';
             }
         }
     }
@@ -83,6 +100,7 @@ public:
     void printGame() {
         std::system("cls");
 
+        this->screen[this->apple.position[0]][this->apple.position[1]] = APPLE_CHAR;
         for (std::array<int, 2> position: this->snake.body) {
             this->screen[position[0]][position[1]] = SNAKE_CHAR;
         }
@@ -107,16 +125,18 @@ public:
         }
         printf("+");
 
-        clearBoard();
+        this->clearBoard();
     }
 };
 
 int main()
 {
-    Game game = Game({5, 5}, up);
+    Game game = Game({10, 10}, up);
     game.printGame();
-    _sleep(1000);
-    game.process();
-    game.printGame();
+    while (true) {
+        _sleep(1000);
+        game.process();
+        game.printGame();
+    }
     return 0;
 }

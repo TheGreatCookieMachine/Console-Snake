@@ -16,7 +16,7 @@ enum Direction {
     up, down, left, right
 };
 
-struct Apple {
+class Apple {
 public:
     std::array<int, 2> position;
 
@@ -79,9 +79,23 @@ public:
         this->clearBoard();
     }
 
+    void moveApple() {
+        std::vector<std::array<int, 2>> places;
+        for (int i = 0; i < SCREEN_HEIGHT; i++) {
+            for (int j = 0; j < SCREEN_WIDTH; j++) {
+                std::array<int, 2> position = {i, j};
+                if (std::find(this->snake.body.begin(), this->snake.body.end(), position) == this->snake.body.end()) {
+                    places.push_back(position);
+                }
+            }
+        }
+        this->apple.position = places[rand() % places.size()] ;
+    }
+
     void process() {
         if (this->snake.nextHead() == this->apple.position) {
             this->snake.ateApple = true;
+            this->moveApple();
         }
 
         this->snake.process();

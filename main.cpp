@@ -11,7 +11,8 @@ const unsigned SCREEN_HEIGHT = 10;
 const unsigned SCREEN_WIDTH = 20;
 
 // Used for printing the game to the screen
-const char SNAKE_CHAR = 'S';
+const char SNAKE_HEAD_CHAR = 'S';
+const char SNAKE_CHAR = 's';
 const char APPLE_CHAR = '@';
 
 // In milliseconds
@@ -124,8 +125,11 @@ public:
             this->snake.ateApple = true;
             this->moveApple();
             this->score++;
-        } else if (nextHead[0] >= SCREEN_HEIGHT || nextHead[1] >= SCREEN_WIDTH ||
-                   std::find(this->snake.body.begin(), this->snake.body.end(), nextHead) != this->snake.body.end()) {
+        }
+
+        auto snakeCollision = std::find(this->snake.body.begin(), this->snake.body.end(), nextHead);
+        if (nextHead[0] >= SCREEN_HEIGHT || nextHead[1] >= SCREEN_WIDTH ||
+            (snakeCollision != this->snake.body.end() && snakeCollision != this->snake.body.end() - 1)) {
             gameOver = true;
             return;
         }
@@ -160,6 +164,7 @@ public:
         for (std::array<unsigned, 2> position: this->snake.body) {
             this->screen[position[0]][position[1]] = SNAKE_CHAR;
         }
+        this->screen[this->snake.body[0][0]][this->snake.body[0][1]] = SNAKE_HEAD_CHAR;
 
         printf("Score: %*u\n", 10, this->score);
 

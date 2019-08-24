@@ -48,7 +48,7 @@ public:
         this->body.push_back(position);
         this->direction = direction;
         this->directionBuffer = direction;
-        ateApple = false;
+        this->ateApple = false;
     }
 
     std::array<int, 2> nextHead() {
@@ -89,9 +89,11 @@ public:
     Snake snake;
     Apple apple;
     char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
+    unsigned score;
 
     Game(std::array<int, 2> snakePosition, Direction direction): snake(snakePosition, direction), apple({5, 10}) {
         this->clearBoard();
+        this->score = 0;
     }
 
     void moveApple() {
@@ -111,6 +113,7 @@ public:
         if (this->snake.nextHead() == this->apple.position) {
             this->snake.ateApple = true;
             this->moveApple();
+            this->score++;
         }
 
         this->snake.process();
@@ -134,6 +137,8 @@ public:
         for (std::array<int, 2> position: this->snake.body) {
             this->screen[position[0]][position[1]] = SNAKE_CHAR;
         }
+
+        printf("Score: %*u\n", 10, this->score);
 
         printf("+");
         for (int i = 0; i < SCREEN_WIDTH; i++) {
@@ -159,6 +164,7 @@ public:
     }
 
     void mainloop() {
+        srand(std::chrono::system_clock::now().time_since_epoch().count());
         while (true) {
             auto startTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
             this->process();

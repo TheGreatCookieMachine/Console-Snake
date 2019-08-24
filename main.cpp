@@ -4,6 +4,7 @@
 #include <chrono>
 #include <algorithm>
 #include <conio.h>
+#include <windows.h>
 
 // Doesn't count walls, actual screen size is 2 higher than inputted value
 const int SCREEN_HEIGHT = 10;
@@ -15,6 +16,13 @@ const char APPLE_CHAR = '@';
 
 // In milliseconds
 const int FRAME_TIME = 500;
+
+// Values returned by getch()
+const char QUIT_KEY = '\x1b';
+const char UP_KEY = 'w';
+const char DOWN_KEY = 's';
+const char LEFT_KEY = 'a';
+const char RIGHT_KEY = 'd';
 
 enum Direction {
     up, down, left, right
@@ -45,7 +53,7 @@ public:
 
     std::array<int, 2> nextHead() {
         std::array<int, 2> destination = this->body[0];
-        switch (this->direction) {
+        switch (this->directionBuffer) {
         case up:
             destination[0]--;
             break;
@@ -119,7 +127,8 @@ public:
     }
 
     void printGame() {
-        std::system("cls");
+        COORD cursorPosition = {0, 0};
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursorPosition);
 
         this->screen[this->apple.position[0]][this->apple.position[1]] = APPLE_CHAR;
         for (std::array<int, 2> position: this->snake.body) {
@@ -158,24 +167,24 @@ public:
             do {
                 if (kbhit()) {
                     switch(getch()) {
-                    case '\x1b':
+                    case QUIT_KEY:
                         return;
-                    case 'w':
+                    case UP_KEY:
                         if (this->snake.direction == left || this->snake.direction == right) {
                             this->snake.directionBuffer = up;
                         }
                         break;
-                    case 's':
+                    case DOWN_KEY:
                         if (this->snake.direction == left || this->snake.direction == right) {
                             this->snake.directionBuffer = down;
                         }
                         break;
-                    case 'a':
+                    case LEFT_KEY:
                         if (this->snake.direction == up || this->snake.direction == down) {
                             this->snake.directionBuffer = left;
                         }
                         break;
-                    case 'd':
+                    case RIGHT_KEY:
                         if (this->snake.direction == up || this->snake.direction == down) {
                             this->snake.directionBuffer = right;
                         }

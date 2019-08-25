@@ -26,6 +26,10 @@ const char DOWN_KEY = 's';
 const char LEFT_KEY = 'a';
 const char RIGHT_KEY = 'd';
 
+// Console atributes
+HANDLE CONSOLE_OUTPUT;
+COORD STARTING_CURSOR_COORD;
+
 enum Direction {
     up, down, left, right
 };
@@ -157,8 +161,7 @@ public:
     }
 
     void printGame() {
-        COORD cursorPosition = {0, 0};
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursorPosition);
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), STARTING_CURSOR_COORD);
 
         this->screen[this->apple.position[0]][this->apple.position[1]] = APPLE_CHAR;
         for (std::array<unsigned, 2> position: this->snake.body) {
@@ -240,7 +243,7 @@ public:
                 case QUIT_KEY:
                     return;
                 case ENTER_KEY:
-                    COORD cursorPosition = {0, SCREEN_HEIGHT + 3};
+                    COORD cursorPosition = {0, STARTING_CURSOR_COORD.Y + SCREEN_HEIGHT + 3};
                     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursorPosition);
                     printf("                                     ");
                     this->resetGame();
@@ -253,6 +256,16 @@ public:
 
 int main()
 {
+    // Console attributes
+    CONSOLE_OUTPUT = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleBufferInfo;
+    if (GetConsoleScreenBufferInfo(CONSOLE_OUTPUT, &consoleBufferInfo)) {
+        STARTING_CURSOR_COORD = consoleBufferInfo.dwCursorPosition;
+    } else {
+        printf("Could not get screen buffer info.");
+        return 1;
+    }
+
     Game game = Game({10, 10}, up);
     game.mainloop();
     return 0;

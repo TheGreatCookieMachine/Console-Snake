@@ -161,7 +161,7 @@ public:
     }
 
     void printGame() {
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), STARTING_CURSOR_COORD);
+        SetConsoleCursorPosition(CONSOLE_OUTPUT, STARTING_CURSOR_COORD);
 
         this->screen[this->apple.position[0]][this->apple.position[1]] = APPLE_CHAR;
         for (std::array<unsigned, 2> position: this->snake.body) {
@@ -244,7 +244,7 @@ public:
                     return;
                 case ENTER_KEY:
                     COORD cursorPosition = {0, STARTING_CURSOR_COORD.Y + SCREEN_HEIGHT + 3};
-                    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursorPosition);
+                    SetConsoleCursorPosition(CONSOLE_OUTPUT, cursorPosition);
                     printf("                                     ");
                     this->resetGame();
                     goto restart;
@@ -265,6 +265,12 @@ int main()
         printf("Could not get screen buffer info.");
         return 1;
     }
+
+    // Remove cursor
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
+    cursorInfo.bVisible = false;
+    SetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
 
     Game game = Game({10, 10}, up);
     game.mainloop();

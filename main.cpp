@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 #include <array>
 #include <chrono>
@@ -29,6 +28,13 @@ const char RIGHT_KEY = 'd';
 // Console atributes
 HANDLE CONSOLE_OUTPUT;
 COORD STARTING_CURSOR_COORD;
+
+void showCursor(bool status) {
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
+    cursorInfo.bVisible = status;
+    SetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
+}
 
 enum Direction {
     up, down, left, right
@@ -120,7 +126,7 @@ public:
                 }
             }
         }
-        this->apple.position = places[rand() % places.size()] ;
+        this->apple.position = places[rand() % places.size()];
     }
 
     void process() {
@@ -254,8 +260,7 @@ public:
     }
 };
 
-int main()
-{
+int main() {
     // Console attributes
     CONSOLE_OUTPUT = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO consoleBufferInfo;
@@ -266,13 +271,12 @@ int main()
         return 1;
     }
 
-    // Remove cursor
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
-    cursorInfo.bVisible = false;
-    SetConsoleCursorInfo(CONSOLE_OUTPUT, &cursorInfo);
+    showCursor(false);
 
     Game game = Game({10, 10}, up);
     game.mainloop();
+
+    showCursor(true);
+
     return 0;
 }

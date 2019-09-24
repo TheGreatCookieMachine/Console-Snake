@@ -40,43 +40,65 @@ enum Direction {
     up, down, left, right
 };
 
+class Coordinate {
+public:
+    unsigned x;
+    unsigned y;
+
+    Coordinate() {
+        this->x = 0;
+        this->y = 0;
+    }
+
+    Coordinate(unsigned x, unsigned y) {
+        this->x = x;
+        this->y = y;
+    }
+
+    bool operator ==(Coordinate obj) {
+        return (this->x == obj.x) && (this->y == obj.y);
+    }
+};
+
 class Apple {
 public:
-    std::array<unsigned, 2> position;
+    Coordinate position;
 
-    Apple(std::array<unsigned, 2> position) {
+    Apple() {}
+
+    Apple(Coordinate position) {
         this->position = position;
     }
 };
 
 class Snake {
 public:
-    std::vector<std::array<unsigned, 2>> body;
+    std::vector<Coordinate> body;
     Direction direction;
     Direction directionBuffer;
     bool ateApple;
 
-    Snake(std::array<unsigned, 2> position, Direction direction) {
+    Snake(Coordinate position, Direction direction) {
         this->body.push_back(position);
         this->direction = direction;
         this->directionBuffer = direction;
         this->ateApple = false;
     }
 
-    std::array<unsigned, 2> nextHead() {
-        std::array<unsigned, 2> destination = this->body[0];
+    Coordinate nextHead() {
+        Coordinate destination = this->body[0];
         switch (this->directionBuffer) {
         case up:
-            destination[0]--;
+            destination.x--;
             break;
         case down:
-            destination[0]++;
+            destination.x++;
             break;
         case left:
-            destination[1]--;
+            destination.y--;
             break;
         case right:
-            destination[1]++;
+            destination.y++;
             break;
         }
         return destination;
@@ -98,7 +120,7 @@ public:
 
 class Game {
 public:
-    std::array<unsigned, 2> startPosition;
+    Coordinate startPosition;
     Direction startDirection;
     Snake snake;
     Apple apple;
@@ -106,7 +128,7 @@ public:
     unsigned score;
     bool gameOver;
 
-    Game(std::array<unsigned, 2> snakePosition, Direction direction): snake(snakePosition, direction), apple({0, 0}) {
+    Game(Coordinate snakePosition, Direction direction): snake(snakePosition, direction) {
         this->startPosition = snakePosition;
         this->startDirection = direction;
         srand(std::chrono::system_clock::now().time_since_epoch().count());
@@ -117,10 +139,10 @@ public:
     }
 
     void moveApple() {
-        std::vector<std::array<unsigned, 2>> places;
+        std::vector<Coordinate> places;
         for (unsigned i = 0; i < SCREEN_HEIGHT; i++) {
             for (unsigned j = 0; j < SCREEN_WIDTH; j++) {
-                std::array<unsigned, 2> position = {i, j};
+                Coordinate position(i, j);
                 if (std::find(this->snake.body.begin(), this->snake.body.end(), position) == this->snake.body.end()) {
                     places.push_back(position);
                 }
@@ -130,7 +152,7 @@ public:
     }
 
     void process() {
-        std::array<unsigned, 2> nextHead = this->snake.nextHead();
+        Coordinate nextHead = this->snake.nextHead();
         if (nextHead == this->apple.position) {
             this->snake.ateApple = true;
             this->moveApple();
@@ -138,7 +160,7 @@ public:
         }
 
         auto snakeCollision = std::find(this->snake.body.begin(), this->snake.body.end(), nextHead);
-        if (nextHead[0] >= SCREEN_HEIGHT || nextHead[1] >= SCREEN_WIDTH ||
+        if (nextHead.x >= SCREEN_HEIGHT || nextHead.y >= SCREEN_WIDTH ||
             (snakeCollision != this->snake.body.end() && snakeCollision != this->snake.body.end() - 1)) {
             gameOver = true;
             return;
@@ -169,11 +191,11 @@ public:
     void printGame() {
         SetConsoleCursorPosition(CONSOLE_OUTPUT, STARTING_CURSOR_COORD);
 
-        this->screen[this->apple.position[0]][this->apple.position[1]] = APPLE_CHAR;
-        for (std::array<unsigned, 2> position: this->snake.body) {
-            this->screen[position[0]][position[1]] = SNAKE_CHAR;
+        this->screen[this->apple.position.x][this->apple.position.y] = APPLE_CHAR;
+        for (Coordinate position: this->snake.body) {
+            this->screen[position.x][position.y] = SNAKE_CHAR;
         }
-        this->screen[this->snake.body[0][0]][this->snake.body[0][1]] = SNAKE_HEAD_CHAR;
+        this->screen[this->snake.body[0].x][this->snake.body[0].y] = SNAKE_HEAD_CHAR;
 
         printf("Score: %*u\n", 10, this->score);
 

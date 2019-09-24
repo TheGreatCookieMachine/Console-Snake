@@ -5,6 +5,9 @@
 #include <conio.h>
 #include <windows.h>
 
+#define now_milliseconds() std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now())
+#define since_epoch_count(time) time.time_since_epoch().count()
+
 // Doesn't count walls, actual screen size is 2 higher than inputted value
 const unsigned SCREEN_HEIGHT = 10;
 const unsigned SCREEN_WIDTH = 20;
@@ -25,7 +28,7 @@ const char DOWN_KEY = 's';
 const char LEFT_KEY = 'a';
 const char RIGHT_KEY = 'd';
 
-// Console atributes
+// Console attributes
 HANDLE CONSOLE_OUTPUT;
 COORD STARTING_CURSOR_COORD;
 
@@ -131,7 +134,7 @@ public:
     Game(Coordinate snakePosition, Direction direction): snake(snakePosition, direction) {
         this->startPosition = snakePosition;
         this->startDirection = direction;
-        srand(std::chrono::system_clock::now().time_since_epoch().count());
+        srand(since_epoch_count(now_milliseconds()));
         this->moveApple();
         this->clearBoard();
         this->score = 0;
@@ -224,15 +227,15 @@ public:
 
     void mainloop() {
         restart:
-        srand(std::chrono::system_clock::now().time_since_epoch().count());
+        srand(since_epoch_count(now_milliseconds()));
         while (true) {
-            auto startTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+            auto startTime = now_milliseconds();
             this->process();
             if (this->gameOver) {
                 break;
             }
             this->printGame();
-            auto currentTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+            auto currentTime = now_milliseconds();
 
             do {
                 if (kbhit()) {
@@ -261,8 +264,8 @@ public:
                         break;
                     }
                 }
-                currentTime = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-            } while (currentTime.time_since_epoch().count() - startTime.time_since_epoch().count() < FRAME_TIME);
+                currentTime = now_milliseconds();
+            } while (since_epoch_count(currentTime) - since_epoch_count(startTime) < FRAME_TIME);
         }
         printf("\nGame over! Press enter to continue...");
         while (true) {
